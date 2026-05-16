@@ -24,10 +24,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findUsernameWithRole(username)
                 .orElseThrow(()-> new UsernameNotFoundException("User not found"));
 
+        String roleName = user.getRole().getName();
+
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-                List.of(new SimpleGrantedAuthority(user.getRole().getName()))
-        );
+                List.of(new SimpleGrantedAuthority(roleName)));
     }
 }

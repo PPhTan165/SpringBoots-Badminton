@@ -14,7 +14,6 @@ public class RegisterRequest {
     @Email
     private String email;
 
-    private Long roleId;
 
     @NotBlank(message = "Full name is required")
     private String fullName;
@@ -34,10 +33,6 @@ public class RegisterRequest {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public void setRoleId(Long roleId) {
-        this.roleId = roleId;
     }
 
     public void setFullName(String fullName) {
@@ -62,10 +57,6 @@ public class RegisterRequest {
 
     public String getEmail() {
         return email;
-    }
-
-    public Long getRoleId() {
-        return roleId;
     }
 
     public String getFullName() {

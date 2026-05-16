@@ -57,12 +57,9 @@ public class ProductService {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(()-> new ResourceNotFoundException("Category not found"));
 
-        Brand brand = null;
+        Brand brand = brandRepository.findById(request.getBrandId())
+                .orElseThrow(()-> new ResourceNotFoundException("Brand not found"));
 
-        if(request.getBrandId() != null){
-            brand = brandRepository.findById(request.getBrandId())
-                    .orElseThrow(()->new ResourceNotFoundException("Brand not found"));
-        }
 
         Product product = new Product();
         product.setName(request.getName());

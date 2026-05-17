@@ -1,10 +1,6 @@
 package com.example.badminton_management.service;
 
-import com.example.badminton_management.dto.auth.LoginRequest;
-import com.example.badminton_management.dto.auth.LoginResponse;
-import com.example.badminton_management.dto.auth.ChangePasswordRequest;
-import com.example.badminton_management.dto.auth.RegisterRequest;
-import com.example.badminton_management.dto.auth.UserProfileResponse;
+import com.example.badminton_management.dto.auth.*;
 import com.example.badminton_management.dto.common.SuccessResponse;
 import com.example.badminton_management.exception.BadRequestException;
 import com.example.badminton_management.exception.ResourceNotFoundException;
@@ -51,7 +47,8 @@ public class AuthService {
         return new SuccessResponse("Register Success: " + request.getFullName());
     }
 
-    public LoginResponse login (LoginRequest request){
+    public LoginResult login (LoginRequest request){
+
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(()-> new BadRequestException("Invalid username"));
 
@@ -62,10 +59,23 @@ public class AuthService {
 
         if(!isPasswordMatch)throw new BadRequestException("Invalid password");
 
+        String accessToken = jwtService.generateAccessToken(request.getUsername());
+        String refreshToken = jwtService.generateRefreshToken(request.getUsername());
 
-        String token = jwtService.generateToken(user.getUsername());
+        return new LoginResult("Login success", accessToken, refreshToken);
+    }
 
-        return new LoginResponse("Login success", token);
+    public String refreshToken (String refreshToken){
+        String username = jwtService.extractUsername(refreshToken);
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(()->new BadRequestException("User not found"));
+
+        if(!jwtService.isRefreshTokenValid(refreshToken, user.getUsername())){
+            throw new BadRequestException("Invalid refresh token");
+        }
+
+        return jwtService.generateAccessToken(user.getUsername());
     }
 
     public UserProfileResponse getCurrentUserProfile(String username) {

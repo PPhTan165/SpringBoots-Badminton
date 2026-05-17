@@ -1,14 +1,12 @@
 package com.example.badminton_management.service;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.util.Base64;
 import java.util.Date;
 import java.util.function.Function;
 
@@ -17,31 +15,50 @@ public class JwtService {
     private static final String SECRET_KEY =
             "1234567890123456789012345678901212345678901234567890123456789012";
 
-    private Long expireToken = Long.valueOf(1000 * 60 * 60 * 24);
+    private final long accessTokenExpire = 1000L * 60 * 15; // 15 minutes
+    private final long refreshTokenExpire = 1000L * 60 * 60 * 24 * 7; // 7 days
 
-    public String generateToken(String username){
+    public String generateAccessToken(String username) {
+        return generateToken(username, accessTokenExpire, "ACCESS");
+    }
+
+    public String generateRefreshToken(String username) {
+        return generateToken(username, refreshTokenExpire, "REFRESH");
+    }
+
+    public String generateToken(String username, long expireTime, String type) {
         return Jwts.builder()
                 .subject(username)
+                .claim("type", type)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expireToken))
+                .expiration(new Date(System.currentTimeMillis() + expireTime))
                 .signWith(getSignInKey())
                 .compact();
     }
 
-    public String extractUsername(String token){
+    public boolean isRefreshTokenValid(String token, String username) {
+        String extractedUsername = extractUsername(token);
+        String type = extractClaim(token, claims -> claims.get("type", String.class));
+
+        return extractedUsername.equals(username)
+                && "REFRESH".equals(type)
+                && !isTokenExpire(token);
+    }
+
+    public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public boolean isTokenValid(String token, String username){
+    public boolean isTokenValid(String token, String username) {
         String extractedUsername = extractUsername(token);
         return extractedUsername.equals(username) && !isTokenExpire(token);
     }
 
-    private boolean isTokenExpire(String token){
-        return extractClaim(token,Claims::getExpiration).before(new Date());
+    private boolean isTokenExpire(String token) {
+        return extractClaim(token, Claims::getExpiration).before(new Date());
     }
 
-    private <T> T extractClaim(String token, Function<Claims,T> claimsResolver){
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         Claims claims = Jwts.parser()
                 .verifyWith(getSignInKey())
                 .build()
@@ -50,7 +67,7 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    private SecretKey getSignInKey(){
+    private SecretKey getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(
                 java.util.Base64.getEncoder().encodeToString(SECRET_KEY.getBytes())
         );

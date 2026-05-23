@@ -1,8 +1,11 @@
 package com.example.badminton_management.service;
 
-import com.example.badminton_management.dto.CreateProductRequest;
-import com.example.badminton_management.dto.ProductResponse;
+import com.example.badminton_management.dto.product.CreateProductRequest;
+import com.example.badminton_management.dto.product.ProductResponse;
+import com.example.badminton_management.dto.product.UpdateProductRequest;
+import com.example.badminton_management.dto.product.UpdateProductStatusRequest;
 import com.example.badminton_management.enums.ProductStatus;
+import com.example.badminton_management.exception.BadRequestException;
 import com.example.badminton_management.exception.ResourceNotFoundException;
 import com.example.badminton_management.model.Brand;
 import com.example.badminton_management.model.Category;
@@ -11,7 +14,9 @@ import com.example.badminton_management.repository.BrandRepository;
 import com.example.badminton_management.repository.CategoryRepository;
 import com.example.badminton_management.repository.ProductRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -54,6 +59,10 @@ public class ProductService {
             throw new IllegalArgumentException("SKU already exists");
         }
 
+        if(productRepository.existsByName(request.getName())){
+            throw new BadRequestException("Product already exists");
+        }
+
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(()-> new ResourceNotFoundException("Category not found"));
 
@@ -93,5 +102,47 @@ public class ProductService {
        }
 
        return mapToResponse(product);
+    }
+
+    @Transactional
+    public ProductResponse updateProduct(Long id,UpdateProductRequest request){
+        Product product = productRepository.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("Product not found with id: " + id));
+
+        if(productRepository.existsByNameAndIdNot(request.getName(),id)){
+            throw  new BadRequestException("Product already exists");
+        }
+
+        if(productRepository.existsBySkuAndIdNot(request.getSku(),id)){
+            throw new BadRequestException("SKU already exists");
+        }
+
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(()-> new ResourceNotFoundException("Category not found"));
+
+        Brand brand = brandRepository.findById(request.getBrandId())
+                .orElseThrow(()-> new ResourceNotFoundException("Brand not found"));
+
+        product.setName(request.getName());
+        product.setSku(request.getSku());
+        product.setDescription(request.getDescription());
+        product.setPrice(request.getPrice());
+        product.setStockQuantity(request.getStockQuantity());
+        product.setImageUrl(request.getImageUrl());
+        product.setCategory(category);
+        product.setBrand(brand);
+        product.setUpdatedAt(LocalDateTime.now());
+
+        return mapToResponse(productRepository.save(product));
+    }
+
+    @Transactional
+    public ProductResponse updateProductStatus(Long id, UpdateProductStatusRequest request){
+        Product product = productRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("Product not found with id: "+id));
+
+        product.setStatus(request.getStatus());
+        product.setUpdatedAt(LocalDateTime.now());
+        return mapToResponse(productRepository.save(product));
     }
 }

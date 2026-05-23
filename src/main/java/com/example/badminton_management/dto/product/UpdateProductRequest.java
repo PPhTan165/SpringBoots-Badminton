@@ -1,10 +1,13 @@
-package com.example.badminton_management.dto;
+package com.example.badminton_management.dto.product;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
 
-public class CreateProductRequest {
+public class UpdateProductRequest {
     @NotBlank(message = "Name is required")
     private String name;
 
@@ -28,7 +31,7 @@ public class CreateProductRequest {
 
     private Long brandId;
 
-    public CreateProductRequest() {
+    public UpdateProductRequest() {
     }
 
     public String getName() {
@@ -43,32 +46,55 @@ public class CreateProductRequest {
         return sku;
     }
 
+    public void setSku(String sku) {
+        this.sku = sku;
+    }
 
     public String getDescription() {
         return description;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public BigDecimal getPrice() {
         return price;
     }
 
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
 
     public Integer getStockQuantity() {
         return stockQuantity;
+    }
+
+    public void setStockQuantity(Integer stockQuantity) {
+        this.stockQuantity = stockQuantity;
     }
 
     public String getImageUrl() {
         return imageUrl;
     }
 
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 
     public Long getCategoryId() {
         return categoryId;
     }
 
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
+    }
 
     public Long getBrandId() {
         return brandId;
+    }
+
+    public void setBrandId(Long brandId) {
+        this.brandId = brandId;
     }
 }

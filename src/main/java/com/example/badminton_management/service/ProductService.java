@@ -32,6 +32,7 @@ public class ProductService {
         this.brandRepository = brandRepository;
     }
 
+    //Chuyển đổi map sang dạng object để điều chỉnh field đầu ra trong API
     public ProductResponse mapToResponse(Product product){
         ProductResponse response = new ProductResponse();
         response.setId(product.getId());
@@ -54,6 +55,7 @@ public class ProductService {
         return response;
     }
 
+    //Tạo sản phẩm mới
     public ProductResponse createProduct(CreateProductRequest request){
         if(productRepository.existsBySku(request.getSku())){
             throw new IllegalArgumentException("SKU already exists");
@@ -84,12 +86,14 @@ public class ProductService {
         return mapToResponse(productRepository.save(product));
     }
 
+    //Lấy tất cả sản phẩm
     public List<ProductResponse> getAllProducts(){
         return productRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
+    //Lấy sản phẩm theo Id
     public ProductResponse getProductById(long id){
        if(id < 0) {
            throw new IllegalArgumentException("Id must be greater than 0");
@@ -104,6 +108,7 @@ public class ProductService {
        return mapToResponse(product);
     }
 
+    //Cập nhật tất cả thông tin của sản phẩm
     @Transactional
     public ProductResponse updateProduct(Long id,UpdateProductRequest request){
         Product product = productRepository.findById(id)
@@ -136,6 +141,7 @@ public class ProductService {
         return mapToResponse(productRepository.save(product));
     }
 
+    //Cập nhật trạng thái sản phẩm hữu dụng hay không
     @Transactional
     public ProductResponse updateProductStatus(Long id, UpdateProductStatusRequest request){
         Product product = productRepository.findById(id)

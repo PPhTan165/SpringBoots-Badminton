@@ -1,6 +1,5 @@
-package com.example.badminton_management.dto;
+package com.example.badminton_management.dto.product;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.math.BigDecimal;

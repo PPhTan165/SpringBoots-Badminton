@@ -1,8 +1,11 @@
 package com.example.badminton_management.service;
 
-import com.example.badminton_management.dto.CreateProductRequest;
-import com.example.badminton_management.dto.ProductResponse;
+import com.example.badminton_management.dto.product.CreateProductRequest;
+import com.example.badminton_management.dto.product.ProductResponse;
+import com.example.badminton_management.dto.product.UpdateProductRequest;
+import com.example.badminton_management.dto.product.UpdateProductStatusRequest;
 import com.example.badminton_management.enums.ProductStatus;
+import com.example.badminton_management.exception.BadRequestException;
 import com.example.badminton_management.exception.ResourceNotFoundException;
 import com.example.badminton_management.model.Brand;
 import com.example.badminton_management.model.Category;
@@ -11,7 +14,9 @@ import com.example.badminton_management.repository.BrandRepository;
 import com.example.badminton_management.repository.CategoryRepository;
 import com.example.badminton_management.repository.ProductRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -27,6 +32,7 @@ public class ProductService {
         this.brandRepository = brandRepository;
     }
 
+    //Chuyển đổi map sang dạng object để điều chỉnh field đầu ra trong API
     public ProductResponse mapToResponse(Product product){
         ProductResponse response = new ProductResponse();
         response.setId(product.getId());
@@ -49,9 +55,14 @@ public class ProductService {
         return response;
     }
 
+    //Tạo sản phẩm mới
     public ProductResponse createProduct(CreateProductRequest request){
         if(productRepository.existsBySku(request.getSku())){
             throw new IllegalArgumentException("SKU already exists");
+        }
+
+        if(productRepository.existsByName(request.getName())){
+            throw new BadRequestException("Product already exists");
         }
 
         Category category = categoryRepository.findById(request.getCategoryId())
@@ -75,12 +86,14 @@ public class ProductService {
         return mapToResponse(productRepository.save(product));
     }
 
+    //Lấy tất cả sản phẩm
     public List<ProductResponse> getAllProducts(){
         return productRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
+    //Lấy sản phẩm theo Id
     public ProductResponse getProductById(long id){
        if(id < 0) {
            throw new IllegalArgumentException("Id must be greater than 0");
@@ -93,5 +106,49 @@ public class ProductService {
        }
 
        return mapToResponse(product);
+    }
+
+    //Cập nhật tất cả thông tin của sản phẩm
+    @Transactional
+    public ProductResponse updateProduct(Long id,UpdateProductRequest request){
+        Product product = productRepository.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("Product not found with id: " + id));
+
+        if(productRepository.existsByNameAndIdNot(request.getName(),id)){
+            throw  new BadRequestException("Product already exists");
+        }
+
+        if(productRepository.existsBySkuAndIdNot(request.getSku(),id)){
+            throw new BadRequestException("SKU already exists");
+        }
+
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(()-> new ResourceNotFoundException("Category not found"));
+
+        Brand brand = brandRepository.findById(request.getBrandId())
+                .orElseThrow(()-> new ResourceNotFoundException("Brand not found"));
+
+        product.setName(request.getName());
+        product.setSku(request.getSku());
+        product.setDescription(request.getDescription());
+        product.setPrice(request.getPrice());
+        product.setStockQuantity(request.getStockQuantity());
+        product.setImageUrl(request.getImageUrl());
+        product.setCategory(category);
+        product.setBrand(brand);
+        product.setUpdatedAt(LocalDateTime.now());
+
+        return mapToResponse(productRepository.save(product));
+    }
+
+    //Cập nhật trạng thái sản phẩm hữu dụng hay không
+    @Transactional
+    public ProductResponse updateProductStatus(Long id, UpdateProductStatusRequest request){
+        Product product = productRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("Product not found with id: "+id));
+
+        product.setStatus(request.getStatus());
+        product.setUpdatedAt(LocalDateTime.now());
+        return mapToResponse(productRepository.save(product));
     }
 }

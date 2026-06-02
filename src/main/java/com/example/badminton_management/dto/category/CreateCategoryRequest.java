@@ -1,32 +1,28 @@
 package com.example.badminton_management.dto.category;
 
-public class CategoryResponse {
-    private Long id;
+import jakarta.validation.constraints.NotBlank;
+
+public class CreateCategoryRequest {
+    @NotBlank(message = "Name is required")
     private String name;
+
     private String description;
+
     private Long parentId;
 
-    public CategoryResponse() {
-    }
-
-    public Long getId() {
-        return id;
+    public CreateCategoryRequest() {
     }
 
     public String getName() {
         return name;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public void setDescription(String description) {

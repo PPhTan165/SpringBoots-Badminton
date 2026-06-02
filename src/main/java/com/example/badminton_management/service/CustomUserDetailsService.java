@@ -1,6 +1,5 @@
 package com.example.badminton_management.service;
 
-import com.example.badminton_management.exception.ResourceNotFoundException;
 import com.example.badminton_management.model.User;
 import com.example.badminton_management.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -25,10 +24,11 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(()-> new UsernameNotFoundException("User not found"));
 
         String roleName = user.getRole().getName();
+        String authority = roleName.startsWith("ROLE_") ? roleName : "ROLE_" + roleName;
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-                List.of(new SimpleGrantedAuthority(roleName)));
+                List.of(new SimpleGrantedAuthority(authority)));
     }
 }

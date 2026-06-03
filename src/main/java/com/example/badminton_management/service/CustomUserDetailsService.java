@@ -1,5 +1,6 @@
 package com.example.badminton_management.service;
 
+import com.example.badminton_management.model.CustomUserDetails;
 import com.example.badminton_management.model.User;
 import com.example.badminton_management.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -26,8 +27,10 @@ public class CustomUserDetailsService implements UserDetailsService {
         String roleName = user.getRole().getName();
         String authority = roleName.startsWith("ROLE_") ? roleName : "ROLE_" + roleName;
 
-        return new org.springframework.security.core.userdetails.User(
+        return new CustomUserDetails(
+                user.getId(),
                 user.getUsername(),
+                user.getEmail(),
                 user.getPassword(),
                 List.of(new SimpleGrantedAuthority(authority)));
     }

@@ -21,7 +21,7 @@ public class CartItem {
     private Product product;
 
     @Column(nullable = false)
-    private int quantity;
+    private Integer quantity;
 
     @Column(name = "unit_price",nullable = false)
     private BigDecimal unitPrice;
@@ -47,7 +47,7 @@ public class CartItem {
         return product;
     }
 
-    public int getQuantity() {
+    public Integer getQuantity() {
         return quantity;
     }
 
@@ -75,7 +75,7 @@ public class CartItem {
         this.product = product;
     }
 
-    public void setQuantity(int quantity) {
+    public void setQuantity(Integer quantity) {
         this.quantity = quantity;
     }
 

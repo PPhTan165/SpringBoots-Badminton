@@ -12,30 +12,32 @@ import com.example.badminton_management.jwt.CurrentUserHelper;
 import com.example.badminton_management.model.*;
 import com.example.badminton_management.repository.*;
 import jakarta.transaction.Transactional;
-import org.springframework.security.core.parameters.P;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+@Service
 public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
-    private CurrentUserHelper currentUserHelper;
+    private final CurrentUserHelper currentUserHelper;
 
     public OrderService(
             OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
             ProductRepository productRepository,
             CartRepository cartRepository,
-            CartItemRepository cartItemRepository) {
+            CartItemRepository cartItemRepository,CurrentUserHelper currentUserHelper) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.productRepository = productRepository;
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
+        this.currentUserHelper = currentUserHelper;
     }
 
     private OrderItemResponse mapToOrderItemResponse(OrderItem orderItem){
@@ -101,12 +103,9 @@ public class OrderService {
             throw new IllegalArgumentException("Id must be greater than 0");
         }
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(()->new BadRequestException("Order not found with id: "+orderId));
-
-        if(order == null){
-            throw new ResourceNotFoundException("Order not found");
-        }
+        User user = getCurrentUser();
+        Order order = orderRepository.findByIdAndUser(orderId, user)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
         return mapToOrderResponse(order);
     }
@@ -211,19 +210,23 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
+        // Lấy trạng thái hiện tại của order và trạng thái mới client muốn cập nhật
         OrderStatus currentStatus = order.getOrderStatus();
         OrderStatus newStatus = request.getOrderStatus();
 
+        // Nếu trạng thái mới giống trạng thái cũ thì không cần update, trả luôn response hiện tại
         if (currentStatus == newStatus) {
             return mapToOrderResponse(order);
         }
 
+        // Chỉ cho phép chuyển trạng thái theo đúng luồng nghiệp vụ đã định nghĩa
         if (!isValidStatusTransition(currentStatus, newStatus)) {
             throw new BadRequestException(
                     "Cannot update order status from " + currentStatus + " to " + newStatus
             );
         }
-
+        // Nếu order bị hủy thì hoàn lại số lượng sản phẩm vào kho
+        // vì ở bước createOrder() đã trừ stock rồi
         if (newStatus == OrderStatus.CANCELLED) {
             List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
 
@@ -233,7 +236,7 @@ public class OrderService {
                 productRepository.save(product);
             }
         }
-
+        // Cập nhật trạng thái mới cho order
         order.setOrderStatus(newStatus);
         Order updatedOrder = orderRepository.save(order);
 

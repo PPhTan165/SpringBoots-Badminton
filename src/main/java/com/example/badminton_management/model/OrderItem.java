@@ -20,7 +20,7 @@ public class OrderItem {
     private Product product;
 
     @Column(nullable = false)
-    private Long quantity;
+    private Integer quantity;
 
     @Column(table = "unit_price",nullable = false)
     private BigDecimal unitPrice;
@@ -55,11 +55,11 @@ public class OrderItem {
         this.product = product;
     }
 
-    public Long getQuantity() {
+    public Integer getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(Long quantity) {
+    public void setQuantity(Integer quantity) {
         this.quantity = quantity;
     }
 

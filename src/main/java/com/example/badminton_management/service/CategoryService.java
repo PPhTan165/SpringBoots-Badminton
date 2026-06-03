@@ -10,9 +10,11 @@ import com.example.badminton_management.model.Category;
 import com.example.badminton_management.repository.CategoryRepository;
 import com.example.badminton_management.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class CategoryService {
     private CategoryRepository categoryRepository;
 

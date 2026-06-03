@@ -29,10 +29,11 @@ public class CartService {
     private UserRepository userRepository;
     private ProductRepository productRepository;
 
-    public CartService(CartRepository cartRepository, UserRepository userRepository, CartItemRepository cartItemRepository) {
+    public CartService(CartRepository cartRepository, UserRepository userRepository, CartItemRepository cartItemRepository, ProductRepository productRepository) {
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
         this.cartItemRepository = cartItemRepository;
+        this.productRepository = productRepository;
     }
 
     //Chuyển từng CartItem sang CartItemResponse để trả về API
@@ -53,7 +54,10 @@ public class CartService {
     }
 
     private CartResponse mapToCartResponse(Cart cart) {
-        List<CartItemResponse> items = cartItemRepository.findByCart(cart).stream().map(this::mapToCartItemResponse).toList();
+        List<CartItemResponse> items = cartItemRepository.findByCart(cart)
+                .stream()
+                .map(this::mapToCartItemResponse)
+                .toList();
 
         CartResponse response = new CartResponse();
 
@@ -73,9 +77,11 @@ public class CartService {
             newCart.setStatus(CartStatus.ACTIVE);
             return cartRepository.save(newCart);
         });
+
         return mapToCartResponse(cart);
     }
 
+    @Transactional
     public CartResponse addToCart(AddToCartRequest request) {
         if (request.getQuantity() < 1) {
             throw new IllegalArgumentException("Quantity must be greater than 0");
@@ -90,7 +96,8 @@ public class CartService {
             return cartRepository.save(newCart);
         });
         //Tìm sản phẩm theo productId trong CartItems
-        Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         //Tìm CartItem theo cartId và productId (nếu không có thì sẽ tạo CartItem mới)
         CartItem cartItem = cartItemRepository.findByCartAndProduct(cart, product).orElseGet(() -> {
@@ -110,12 +117,14 @@ public class CartService {
         cartItem.setUnitPrice(product.getPrice());
         cartItem.setSubtotal(product.getPrice().multiply(BigDecimal.valueOf(newQuantity)));
 
+        cartItemRepository.save(cartItem);
+
         return mapToCartResponse(cart);
     }
 
     @Transactional
     public CartResponse updateCartItem(Long cartItemId, UpdateCartRequest request) {
-        if (cartItemId < 0) {
+        if (cartItemId <= 0) {
             throw new IllegalArgumentException("Id must be greater than 0");
         }
 
@@ -148,10 +157,9 @@ public class CartService {
 
     }
 
-
     @Transactional
     public CartResponse removeCartItem(Long cartItemId){
-        if (cartItemId < 0) {
+        if (cartItemId <= 0) {
             throw new IllegalArgumentException("Id must be greater than 0");
         }
 
@@ -162,7 +170,7 @@ public class CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Active cart not found"));
 
         //Tìm Item trong Cart của User hiện tại
-        CartItem cartItem = cartItemRepository.findById(cartItemId)
+        CartItem cartItem = cartItemRepository.findByIdAndCart(cartItemId,cart)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart item not found"));
 
         if(!cartItem.getCart().getId().equals(cart.getId())){
@@ -177,10 +185,18 @@ public class CartService {
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        if(authentication == null || !authentication.isAuthenticated()){
+            throw new BadRequestException("Unauthenticated");
+        }
 
-        return userRepository.findById(userDetails.getId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        String username = authentication.getName();
+
+        if("anonymousUser".equals(username)){
+            throw new BadRequestException("Unauthenticated");
+        }
+
+
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
-
-
 }

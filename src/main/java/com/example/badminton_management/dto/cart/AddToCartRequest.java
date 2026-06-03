@@ -9,6 +9,7 @@ public class AddToCartRequest {
     private Long productId;
 
     @Min(1)
+    @NotNull
     private Integer quantity;
 
     public AddToCartRequest() {

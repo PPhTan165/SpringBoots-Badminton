@@ -5,4 +5,8 @@ import jakarta.validation.constraints.Min;
 public class UpdateCartRequest {
     @Min(1)
     private Integer quantity;
+
+    public Integer getQuantity() {
+        return quantity;
+    }
 }

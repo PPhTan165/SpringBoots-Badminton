@@ -16,6 +16,7 @@ public class Cart {
     @JoinColumn(name = "user_id",nullable = false)
     private User user;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CartStatus status = CartStatus.ACTIVE;
 

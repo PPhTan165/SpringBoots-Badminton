@@ -10,8 +10,6 @@ public class CartItemResponse {
 
     private String productName;
 
-    private String imageUrl;
-
     private BigDecimal unitPrice;
 
     private Integer quantity;
@@ -31,10 +29,6 @@ public class CartItemResponse {
 
     public String getProductName() {
         return productName;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
     }
 
     public BigDecimal getUnitPrice() {
@@ -59,10 +53,6 @@ public class CartItemResponse {
 
     public void setProductName(String productName) {
         this.productName = productName;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
     }
 
     public void setUnitPrice(BigDecimal unitPrice) {

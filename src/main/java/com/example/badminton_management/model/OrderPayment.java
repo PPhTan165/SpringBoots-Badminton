@@ -13,6 +13,10 @@ public class OrderPayment extends Payment{
     @JoinColumn(name = "order_id",nullable = false)
     private Order order;
 
+    public OrderPayment() {
+
+    }
+
     public Order getOrder() {
         return order;
     }

@@ -1,10 +1,25 @@
 package com.example.badminton_management.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.example.badminton_management.enums.PaymentMethod;
+import jakarta.persistence.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "order_payments")
-public class OrderPayment {
+public class OrderPayment extends Payment{
+    @ManyToOne
+    @JoinColumn(name = "order_id",nullable = false)
+    private Order order;
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
 
 }

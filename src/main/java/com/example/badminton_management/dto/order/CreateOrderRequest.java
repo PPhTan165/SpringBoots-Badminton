@@ -1,14 +1,8 @@
 package com.example.badminton_management.dto.order;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 public class CreateOrderRequest {
-    @Min(1)
-    @NotNull
-    private Integer quantity;
-
     @NotBlank
     private String shippingName;
 
@@ -19,14 +13,6 @@ public class CreateOrderRequest {
     private String shippingAddress;
 
     private String note;
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
 
     public String getShippingName() {
         return shippingName;

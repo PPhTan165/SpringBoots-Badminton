@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class CreatePaymentRequest {
-    @NotNull
+    @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;
 
     public PaymentMethod getPaymentMethod() {

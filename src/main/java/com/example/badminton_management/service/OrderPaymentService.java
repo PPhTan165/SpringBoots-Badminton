@@ -3,6 +3,7 @@ package com.example.badminton_management.service;
 import com.example.badminton_management.dto.payment.CreatePaymentRequest;
 import com.example.badminton_management.dto.payment.OrderPaymentResponse;
 import com.example.badminton_management.dto.payment.UpdatePaymentStatusRequest;
+import com.example.badminton_management.enums.OrderStatus;
 import com.example.badminton_management.enums.PaymentStatus;
 import com.example.badminton_management.exception.BadRequestException;
 import com.example.badminton_management.exception.ResourceNotFoundException;
@@ -46,6 +47,8 @@ public class OrderPaymentService {
         response.setPaymentMethod(orderPayment.getPaymentMethod().name());
         response.setPaymentStatus(orderPayment.getPaymentStatus().name());
         response.setTransactionCode(orderPayment.getTransactionCode());
+        response.setCreatedAt(orderPayment.getCreatedAt());
+        response.setPaidAt(orderPayment.getPaidAt());
 
         return response;
     }
@@ -68,13 +71,25 @@ public class OrderPaymentService {
             throw new IllegalArgumentException("Id must be greater than 0");
         }
 
+        if(request == null || request.getPaymentMethod() == null){
+            throw new BadRequestException("Payment method is required");
+        }
+
         User user = getCurrentUser();
 
         Order order = orderRepository.findByIdAndUser(orderId,user)
                 .orElseThrow(()->new ResourceNotFoundException("Order not found with id: " +orderId));
 
+        if(order.getOrderStatus() == OrderStatus.CANCELLED){
+            throw new BadRequestException("Order is not eligible for payment");
+        }
+
+        if(order.getTotalAmount() == null || order.getTotalAmount().signum() <= 0){
+            throw new BadRequestException("Order amount must be greater than 0");
+        }
+
         if(orderPaymentRepository.findByOrder(order).isPresent()){
-            throw new BadRequestException("Payment already exists for order id: "+orderId);
+            throw new BadRequestException("Payment already exists for order id: " + orderId);
         }
 
         OrderPayment orderPayment = new OrderPayment();
@@ -120,7 +135,9 @@ public class OrderPaymentService {
             payment.setPaidAt(LocalDateTime.now());
         }
 
+        payment.setPaymentStatus(newStatus);
         OrderPayment updatePayment = orderPaymentRepository.save(payment);
+
         return mapToResponse(updatePayment);
     }
 
@@ -128,8 +145,7 @@ public class OrderPaymentService {
         return switch (currentStatus) {
             case PENDING -> newStatus == PaymentStatus.PAID || newStatus == PaymentStatus.FAILED;
             case PAID -> newStatus == PaymentStatus.REFUNDED;
-            case FAILED -> false;
-            case REFUNDED -> false;
+            case FAILED, REFUNDED -> false;
         };
     }
 

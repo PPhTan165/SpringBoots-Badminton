@@ -1,8 +1,10 @@
 package com.example.badminton_management.dto.payment;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 public class OrderPaymentResponse {
+    private Long id;
     private Long orderId;
     private String orderCode;
     private Long userId;
@@ -11,6 +13,12 @@ public class OrderPaymentResponse {
     private String paymentMethod;
     private String paymentStatus;
     private String transactionCode;
+    private LocalDateTime createdAt;
+    private LocalDateTime paidAt;
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public void setOrderId(Long orderId) {
         this.orderId = orderId;
@@ -44,6 +52,18 @@ public class OrderPaymentResponse {
         this.transactionCode = transactionCode;
     }
 
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setPaidAt(LocalDateTime paidAt) {
+        this.paidAt = paidAt;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
     public Long getOrderId() {
         return orderId;
     }
@@ -74,5 +94,13 @@ public class OrderPaymentResponse {
 
     public String getTransactionCode() {
         return transactionCode;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getPaidAt() {
+        return paidAt;
     }
 }

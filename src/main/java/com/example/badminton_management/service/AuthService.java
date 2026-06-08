@@ -78,6 +78,10 @@ public class AuthService {
         return jwtService.generateAccessToken(user.getUsername());
     }
 
+    public SuccessResponse logout(){
+        return new  SuccessResponse("Logout success");
+    }
+
     public UserProfileResponse getCurrentUserProfile(String username) {
         User user = userRepository.findUsernameWithRole(username)
                 .orElseThrow(() -> new BadRequestException("User not found"));

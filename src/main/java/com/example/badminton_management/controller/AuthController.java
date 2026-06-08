@@ -45,6 +45,21 @@ public class AuthController {
                 .body(new LoginResponse(result.getMessage(), result.getAccessToken()));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<SuccessResponse> logout(){
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken","")
+                .httpOnly(true)
+                .secure(false)
+                .path("/api/auth/refresh-token")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .body(new SuccessResponse("Logout success"));
+    }
+
     @PostMapping("/refresh-token")
     public ResponseEntity<LoginResponse> refreshToken(@CookieValue(name = "refreshToken") String refreshToken) {
         String newAccessToken = authService.refreshToken(refreshToken);

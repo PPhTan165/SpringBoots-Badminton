@@ -7,23 +7,20 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "order_invoices")
-public class OrderInvoice {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class OrderInvoice extends Invoice {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_payment_id",nullable = false)
     private OrderPayment orderPayment;
 
-    @Column(name = "invoice_code",nullable = false)
-    private String invoiceCode;
+    public OrderInvoice() {
+    }
 
-    @Column(name = "total_amount",nullable = false)
-    private BigDecimal totalAmount;
+    public OrderPayment getOrderPayment() {
+        return orderPayment;
+    }
 
-    private String note;
-
-    @Column(name = "issued_at",nullable = false)
-    private LocalDateTime issuedAt = LocalDateTime.now();
+    public void setOrderPayment(OrderPayment orderPayment) {
+        this.orderPayment = orderPayment;
+    }
 }

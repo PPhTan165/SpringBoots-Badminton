@@ -9,14 +9,12 @@ import com.example.badminton_management.dto.product.ProductResponse;
 import com.example.badminton_management.enums.CartStatus;
 import com.example.badminton_management.exception.BadRequestException;
 import com.example.badminton_management.exception.ResourceNotFoundException;
+import com.example.badminton_management.jwt.CurrentUserHelper;
 import com.example.badminton_management.model.*;
 import com.example.badminton_management.repository.CartItemRepository;
 import com.example.badminton_management.repository.CartRepository;
 import com.example.badminton_management.repository.ProductRepository;
-import com.example.badminton_management.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -26,14 +24,14 @@ import java.util.List;
 public class CartService {
     private CartRepository cartRepository;
     private CartItemRepository cartItemRepository;
-    private UserRepository userRepository;
     private ProductRepository productRepository;
+    private CurrentUserHelper currentUserHelper;
 
-    public CartService(CartRepository cartRepository, UserRepository userRepository, CartItemRepository cartItemRepository, ProductRepository productRepository) {
+    public CartService(CartRepository cartRepository, CartItemRepository cartItemRepository, ProductRepository productRepository, CurrentUserHelper currentUserHelper) {
         this.cartRepository = cartRepository;
-        this.userRepository = userRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
+        this.currentUserHelper = currentUserHelper;
     }
 
     //Chuyển từng CartItem sang CartItemResponse để trả về API
@@ -183,20 +181,6 @@ public class CartService {
     }
 
     private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if(authentication == null || !authentication.isAuthenticated()){
-            throw new BadRequestException("Unauthenticated");
-        }
-
-        String username = authentication.getName();
-
-        if("anonymousUser".equals(username)){
-            throw new BadRequestException("Unauthenticated");
-        }
-
-
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return currentUserHelper.getCurrentUser();
     }
 }

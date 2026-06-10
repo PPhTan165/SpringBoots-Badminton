@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Table(name = "order_invoices")
 public class OrderInvoice extends Invoice {
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_payment_id",nullable = false)
     private OrderPayment orderPayment;
 

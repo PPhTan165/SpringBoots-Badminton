@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 public class OrderInvoice extends Invoice {
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_payment_id",nullable = false)
+    @JoinColumn(name = "order_payment_id",nullable = false, unique = true)
     private OrderPayment orderPayment;
 
     public OrderInvoice() {

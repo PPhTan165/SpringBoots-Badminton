@@ -92,8 +92,8 @@ public class OrderPaymentService {
         }
 
         User user = getCurrentUser();
-
-        Order order = orderRepository.findByIdAndUser(orderId, user).orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+        Order order = orderRepository.findByIdAndUser(orderId, user)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
         if (order.getOrderStatus() == OrderStatus.CANCELLED || order.getOrderStatus() == OrderStatus.COMPLETED) {
             throw new BadRequestException("Order is not eligible for payment");
@@ -129,7 +129,8 @@ public class OrderPaymentService {
             throw new IllegalArgumentException("Id must be greater than 0");
         }
 
-        OrderPayment payment = orderPaymentRepository.findById(orderPaymentId).orElseThrow(() -> new ResourceNotFoundException("Order payment not found with id: " + orderPaymentId));
+        OrderPayment payment = orderPaymentRepository.findById(orderPaymentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order payment not found with id: " + orderPaymentId));
 
         PaymentStatus currentStatus = payment.getPaymentStatus();
         PaymentStatus newStatus = request.getPaymentStatus();

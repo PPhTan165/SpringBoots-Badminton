@@ -8,9 +8,9 @@ import com.example.badminton_management.jwt.CurrentUserHelper;
 import com.example.badminton_management.model.*;
 import com.example.badminton_management.repository.OrderInvoiceRepository;
 import com.example.badminton_management.repository.OrderPaymentRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -53,22 +53,23 @@ public class OrderInvoiceService {
     public List<OrderInvoiceResponse> getMyInvoice(){
         User user = getCurrentUser();
 
-        return orderInvoiceRepository.findInvoiceUser(user).stream().map(this::mapToResponse).toList();
+        return orderInvoiceRepository.findByOrderPaymentOrderUser(user).stream().map(this::mapToResponse).toList();
     }
 
     public OrderInvoiceResponse getMyInvoiceById(Long invoiceId){
-        if(invoiceId <= 0){
+        if(invoiceId == null || invoiceId <= 0){
             throw new IllegalArgumentException("Id must be greater than 0");
         }
 
         User user = getCurrentUser();
 
-        OrderInvoice invoice = orderInvoiceRepository.findInvoiceUserAndId(user,invoiceId)
+        OrderInvoice invoice = orderInvoiceRepository.findByOrderPaymentOrderUserAndId(user,invoiceId)
                 .orElseThrow(()->new ResourceNotFoundException("Invoice not found with id: "+ invoiceId));
 
         return mapToResponse(invoice);
     }
 
+    @Transactional
     public OrderInvoiceResponse createOrderInvoice(Long orderPaymentId){
         if(orderPaymentId==null || orderPaymentId <= 0){
             throw new IllegalArgumentException("Id must be greater than 0");
@@ -76,7 +77,7 @@ public class OrderInvoiceService {
 
         OrderPayment orderPayment = orderPaymentRepository.findById(orderPaymentId)
                 .orElseThrow(()->new ResourceNotFoundException(
-                        "Order payment not found with id" + orderPaymentId));
+                        "Order payment not found with id: " + orderPaymentId));
 
         if(orderPayment.getPaymentStatus() != PaymentStatus.PAID){
             throw new BadRequestException("Invoice can only be created for PAID payments");
@@ -99,6 +100,20 @@ public class OrderInvoiceService {
 
         OrderInvoice savedInvoice = orderInvoiceRepository.save(invoice);
         return mapToResponse(savedInvoice);
+    }
+
+    public List<OrderInvoiceResponse> getAllInvoice(){
+        return orderInvoiceRepository.findAll().stream().map(this::mapToResponse).toList();
+    }
+
+    public OrderInvoiceResponse getInvoiceById(Long orderInvoiceId){
+        if(orderInvoiceId == null || orderInvoiceId <= 0){
+            throw new IllegalArgumentException("Id must be greater than 0");
+        }
+
+        OrderInvoice invoice = orderInvoiceRepository.findById(orderInvoiceId).orElseThrow(()->new ResourceNotFoundException("Invoice not found with id: "+ orderInvoiceId));
+
+        return mapToResponse(invoice);
     }
 
     private User getCurrentUser(){

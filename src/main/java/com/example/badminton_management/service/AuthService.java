@@ -9,7 +9,10 @@ import com.example.badminton_management.model.User;
 import com.example.badminton_management.repository.RoleRepository;
 import com.example.badminton_management.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -76,6 +79,32 @@ public class AuthService {
         }
 
         return jwtService.generateAccessToken(user.getUsername());
+    }
+
+    public LoginResult loginWithGoogle(OAuth2User oAuth2User){
+        String email = oAuth2User.getAttribute("email");
+        String fullname = oAuth2User.getAttribute("name");
+
+        User user = userRepository.findByEmail(email)
+                .orElseGet(()-> {
+                    Role role = roleRepository.findByName("USER")
+                            .orElseThrow(()-> new ResourceNotFoundException("Default role USER not found"));
+
+                    User newUser = new User();
+                    newUser.setEmail(email);
+                    newUser.setUsername(email);
+                    newUser.setFullName(fullname != null ? fullname : email);
+                    newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+                    newUser.setPhoneNumber("GOOGLE_"+UUID.randomUUID());
+                    newUser.setGender("OTHER");
+                    newUser.setRole(role);
+
+                    return userRepository.save(newUser);
+                });
+        String accessToken = jwtService.generateAccessToken(user.getUsername());
+        String refreshToken = jwtService.generateRefreshToken(user.getUsername());
+
+        return new LoginResult("Google login success", accessToken, refreshToken);
     }
 
     public SuccessResponse logout(){

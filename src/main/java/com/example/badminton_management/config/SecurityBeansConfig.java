@@ -1,4 +1,4 @@
-package com.example.badminton_management.jwt;
+package com.example.badminton_management.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package com.example.badminton_management.jwt;
+package com.example.badminton_management.config;
 
 import com.example.badminton_management.service.CustomUserDetailsService;
 import com.example.badminton_management.service.JwtService;
@@ -57,13 +57,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             null,
                             userDetails.getAuthorities()
                     );
-
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-
-
-
                 }
             }
         } catch (RuntimeException ex) {
@@ -72,4 +68,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request,response);
     }
+
+
 }
